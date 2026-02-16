@@ -9,10 +9,12 @@ import { CartProvider } from "./context/CartContext";
 import { ToastProvider } from "./context/ToastContext";
 import { AuthProvider } from "./context/AuthProvider";
 import LoginPage from "./pages/LoginPage";
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <AuthProvider>
         <ToastProvider>
           <CartProvider>

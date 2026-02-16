@@ -1,0 +1,62 @@
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap");
+
+@theme {
+  --color-background: #0a0f1e;
+  --color-foreground: #f8fafc;
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-secondary: #64748b;
+  --color-secondary-hover: #475569;
+  --color-card: #1e293b;
+  --color-card-hover: #334155;
+  --color-input: #1e293b;
+  --color-border: #334155;
+
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar for Webkit */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Utility classes for glassmorphism */
+.glass-panel {
+  background-color: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.gradient-text {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(to right, #60a5fa, #a855f7);
+}

@@ -72,9 +72,9 @@ const HomePage: React.FC = () => {
   }, []);
 
   return (
-    <div className="space-y-4 pb-12">
+    <div className="md:space-y-12 space-y-2 pb-12">
       {/* Hero Section */}
-      <section className="relative h-[75vh] flex items-center justify-center overflow-hidden rounded-3xl mx-2 md:mx-4 bg-gradient-to-b from-primary-dark via-primary to-primary-light">
+      <section className="relative h-[65vh] md:h-[75vh] flex items-center justify-center overflow-hidden rounded-3xl mx-2 md:mx-4 bg-gradient-to-b from-primary-dark via-primary to-primary-light">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1590246294586-2470678d5986?q=80&w=2576&auto=format&fit=crop')] bg-cover bg-center opacity-40 mix-blend-overlay"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent"></div>
 
@@ -120,7 +120,7 @@ const HomePage: React.FC = () => {
 
       {/* Categories Preview - MOVED UP */}
       <section className="px-4">
-        <div className="flex items-end justify-between mb-6">
+        <div className="flex items-end justify-between mb-4 md:mb-6">
           <div>
             <h2 className="text-3xl font-bold text-white tracking-tight">
               Nos Univers
@@ -176,7 +176,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Features / UVP - MOVED DOWN */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4 mt-10 md:mt-16">
         <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all hover:translate-y-[-4px] duration-300">
           <div className="w-11 h-11 bg-primary/20 rounded-xl flex items-center justify-center text-primary mb-4">
             <Star size={22} />

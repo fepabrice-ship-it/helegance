@@ -8,13 +8,19 @@ import { supabase } from "../lib/supabase";
 // Mock Data
 
 const STYLES = [
-  "Animaux",
+  "Papillons",
   "Fleurs",
+  "Animaux",
+  "Designs minimalistes",
+  "Designs tribaux",
   "Géométrique",
   "Spirituel",
-  "Insectes",
-  "Coloré",
-  "Minimaliste",
+];
+
+const SIZES = [
+  { label: "Petit", value: "small" },
+  { label: "Moyen", value: "medium" },
+  { label: "Grand", value: "large" },
 ];
 
 const TattoosPage: React.FC = () => {
@@ -26,6 +32,7 @@ const TattoosPage: React.FC = () => {
     const styleParam = params.get("style");
     return styleParam ? [styleParam] : [];
   });
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const { addToCart } = useCart();
@@ -90,10 +97,20 @@ const TattoosPage: React.FC = () => {
     );
   };
 
-  const filteredTattoos =
-    selectedStyles.length > 0
-      ? tattoos.filter((t) => t.style.some((s) => selectedStyles.includes(s)))
-      : tattoos;
+  const toggleSize = (size: string) => {
+    setSelectedSizes((prev) =>
+      prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size],
+    );
+  };
+
+  const filteredTattoos = tattoos.filter((t) => {
+    const styleMatch =
+      selectedStyles.length === 0 ||
+      t.style.some((s) => selectedStyles.includes(s));
+    const sizeMatch =
+      selectedSizes.length === 0 || selectedSizes.includes(t.size);
+    return styleMatch && sizeMatch;
+  });
 
   const handleAddToCart = (
     product: Product,
@@ -133,6 +150,37 @@ const TattoosPage: React.FC = () => {
             </h3>
 
             <div className="space-y-6">
+              <div>
+                <h4 className="font-semibold mb-3 text-gray-300">Tailles</h4>
+                <div className="space-y-2">
+                  {SIZES.map((size) => (
+                    <label
+                      key={size.value}
+                      className="flex items-center gap-2 cursor-pointer group"
+                    >
+                      <div
+                        className={`w-5 h-5 rounded border border-gray-600 flex items-center justify-center transition-colors ${selectedSizes.includes(size.value) ? "bg-primary border-primary" : "group-hover:border-primary"}`}
+                      >
+                        {selectedSizes.includes(size.value) && (
+                          <span className="text-xs">✓</span>
+                        )}
+                      </div>
+                      <input
+                        type="checkbox"
+                        className="hidden"
+                        checked={selectedSizes.includes(size.value)}
+                        onChange={() => toggleSize(size.value)}
+                      />
+                      <span
+                        className={`text-sm ${selectedSizes.includes(size.value) ? "text-white" : "text-gray-400 group-hover:text-gray-300"}`}
+                      >
+                        {size.label}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
               <div>
                 <h4 className="font-semibold mb-3 text-gray-300">Styles</h4>
                 <div className="space-y-2">
@@ -196,18 +244,35 @@ const TattoosPage: React.FC = () => {
                   <X size={24} />
                 </button>
               </div>
-              <div className="space-y-4">
-                <h4 className="font-semibold text-gray-300">Styles</h4>
-                <div className="flex flex-wrap gap-2">
-                  {STYLES.map((style) => (
-                    <button
-                      key={style}
-                      onClick={() => toggleStyle(style)}
-                      className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${selectedStyles.includes(style) ? "bg-primary border-primary text-white" : "border-gray-700 text-gray-400"}`}
-                    >
-                      {style}
-                    </button>
-                  ))}
+              <div className="space-y-6 overflow-y-auto max-h-[70vh] pr-2">
+                <div>
+                  <h4 className="font-semibold text-gray-300 mb-3">Tailles</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {SIZES.map((size) => (
+                      <button
+                        key={size.value}
+                        onClick={() => toggleSize(size.value)}
+                        className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${selectedSizes.includes(size.value) ? "bg-primary border-primary text-white" : "border-gray-700 text-gray-400"}`}
+                      >
+                        {size.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-gray-300 mb-3">Styles</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {STYLES.map((style) => (
+                      <button
+                        key={style}
+                        onClick={() => toggleStyle(style)}
+                        className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${selectedStyles.includes(style) ? "bg-primary border-primary text-white" : "border-gray-700 text-gray-400"}`}
+                      >
+                        {style}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
               <div className="mt-8">
@@ -288,7 +353,10 @@ const TattoosPage: React.FC = () => {
                 Aucun tatouage ne correspond à ces filtres.
               </p>
               <button
-                onClick={() => setSelectedStyles([])}
+                onClick={() => {
+                  setSelectedStyles([]);
+                  setSelectedSizes([]);
+                }}
                 className="mt-4 text-primary hover:underline"
               >
                 Réinitialiser les filtres

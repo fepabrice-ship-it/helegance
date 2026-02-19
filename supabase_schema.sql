@@ -35,8 +35,27 @@ CREATE TABLE IF NOT EXISTS orders (
   total_amount NUMERIC NOT NULL,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'delivered', 'cancelled')),
   notes TEXT,
+  delivery_date DATE,
+  neighborhood TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Create the incomplete_orders table
+CREATE TABLE IF NOT EXISTS incomplete_orders (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  customer_name TEXT,
+  customer_phone TEXT UNIQUE,
+  customer_address TEXT,
+  neighborhood TEXT,
+  selected_products JSONB,
+  chosen_date DATE,
+  shipping_method TEXT,
+  last_updated TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS for incomplete_orders
+ALTER TABLE incomplete_orders ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can upsert incomplete orders" ON incomplete_orders FOR ALL USING (true) WITH CHECK (true);
 
 -- Create the order_items table
 CREATE TABLE IF NOT EXISTS order_items (

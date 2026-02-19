@@ -24,10 +24,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Navigation */}
       <nav className="fixed w-full z-50 top-0 start-0 border-b border-white/10 bg-background/80 backdrop-blur-md">
         <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-          <Link
-            to="/"
-            className="flex items-center space-x-3 rtl:space-x-reverse group"
-          >
+          <Link to="/" className="flex items-center space-x-2 group">
+            <img
+              src="/images/g-logo.jpg"
+              alt="Helegance Logo"
+              className="w-8 h-8 object-contain group-hover:scale-110 transition-transform duration-300"
+            />
             <span className="self-center text-2xl font-semibold whitespace-nowrap text-white tracking-tight group-hover:text-primary transition-colors duration-300">
               Helegance
             </span>
@@ -108,8 +110,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div className="sm:flex sm:items-center sm:justify-between">
             <Link
               to="/"
-              className="flex items-center mb-4 sm:mb-0 space-x-3 rtl:space-x-reverse"
+              className="flex items-center mb-4 sm:mb-0 space-x-2 rtl:space-x-reverse group"
             >
+              <img
+                src="/images/g-logo.jpg"
+                alt="Helegance Logo"
+                className="w-6 h-6 object-contain grayscale group-hover:grayscale-0 transition-all focus:outline-none"
+              />
               <span className="self-center text-2xl font-semibold whitespace-nowrap text-white">
                 Helegance
               </span>

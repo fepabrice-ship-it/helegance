@@ -9,6 +9,7 @@ import {
   Truck,
   Home,
   MapPin,
+  Calendar,
 } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { Link } from "react-router-dom";
@@ -22,6 +23,8 @@ const CartPage: React.FC = () => {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
+  const [neighborhood, setNeighborhood] = useState("");
+  const [chosenDate, setChosenDate] = useState("");
   const [notes, setNotes] = useState("");
 
   const dynamicPlaceholder = React.useMemo(() => {
@@ -63,6 +66,53 @@ const CartPage: React.FC = () => {
     }
   }, [canDeliver, shippingMethod]);
 
+  // Auto-save incomplete order
+  React.useEffect(() => {
+    let timeoutId: number;
+
+    const saveIncompleteOrder = async () => {
+      // Only save if we have at least a name or phone
+      if (!customerName && !customerPhone) return;
+
+      try {
+        const incompleteOrderData = {
+          customer_name: customerName,
+          customer_phone: customerPhone,
+          customer_address: customerAddress,
+          neighborhood: neighborhood,
+          selected_products: cart,
+          chosen_date: chosenDate || null,
+          shipping_method: shippingMethod,
+          last_updated: new Date().toISOString(),
+        };
+
+        // We use the customer phone as a unique identifier for incomplete orders for simplicity
+        // In a real app, you might want a more robust way to handle this
+        const { error } = await supabase.from("incomplete_orders").upsert(
+          [incompleteOrderData],
+          { onConflict: "customer_phone" }, // Need to ensure customer_phone has a unique constraint or use another key
+        );
+
+        if (error) console.error("Error auto-saving incomplete order:", error);
+      } catch (err) {
+        console.error("Failed to auto-save:", err);
+      }
+    };
+
+    // Debounce to avoid too many writes
+    timeoutId = setTimeout(saveIncompleteOrder, 2000);
+
+    return () => clearTimeout(timeoutId);
+  }, [
+    customerName,
+    customerPhone,
+    customerAddress,
+    neighborhood,
+    cart,
+    chosenDate,
+    shippingMethod,
+  ]);
+
   const handleCheckout = async () => {
     try {
       // 1. Prepare Order Data for Supabase
@@ -71,6 +121,8 @@ const CartPage: React.FC = () => {
         customer_phone: customerPhone,
         customer_address:
           shippingMethod === "delivery" ? customerAddress : null,
+        neighborhood: shippingMethod === "delivery" ? neighborhood : null,
+        delivery_date: chosenDate,
         shipping_method: shippingMethod,
         total_amount: finalTotal,
         status: "pending",
@@ -131,6 +183,8 @@ RECAPITULATIF :
 INFOS CLIENT :
 - Nom : ${customerName}
 - Televephone : ${customerPhone}
+${shippingMethod === "delivery" ? `- Quartier : ${neighborhood}` : ""}
+- Date souhaitée : ${new Date(chosenDate).toLocaleDateString("fr-FR")}
 ${shippingMethod === "delivery" ? `- Adresse : ${customerAddress}` : ""}
 ${notes ? `- Note : ${notes}` : ""}
 
@@ -366,25 +420,58 @@ Merci de confirmer ma commande !`;
               </div>
 
               {shippingMethod === "delivery" && (
-                <div className="space-y-2 animate-slide-up">
-                  <label className="text-xs font-bold text-gray-500 uppercase px-1">
-                    Adresse de livraison
-                  </label>
-                  <div className="relative">
-                    <MapPin
-                      size={18}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
-                    />
+                <div className="space-y-4 animate-slide-up">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-500 uppercase px-1">
+                      Quartier de livraison (Mandatoire)
+                    </label>
                     <input
                       type="text"
-                      value={customerAddress}
-                      onChange={(e) => setCustomerAddress(e.target.value)}
-                      placeholder="Quartier, Précisions..."
-                      className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                      value={neighborhood}
+                      onChange={(e) => setNeighborhood(e.target.value)}
+                      placeholder="Ex: Bastos, Akwa, etc."
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-500 uppercase px-1">
+                      Adresse précise
+                    </label>
+                    <div className="relative">
+                      <MapPin
+                        size={18}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
+                      />
+                      <input
+                        type="text"
+                        value={customerAddress}
+                        onChange={(e) => setCustomerAddress(e.target.value)}
+                        placeholder="Immeuble, Porte, etc."
+                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                      />
+                    </div>
                   </div>
                 </div>
               )}
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 uppercase px-1">
+                  Date de livraison/retrait (Mandatoire)
+                </label>
+                <div className="relative">
+                  <Calendar
+                    size={18}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
+                  />
+                  <input
+                    type="date"
+                    value={chosenDate}
+                    onChange={(e) => setChosenDate(e.target.value)}
+                    min={new Date().toISOString().split("T")[0]}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                  />
+                </div>
+              </div>
 
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-500 uppercase px-1">
@@ -435,7 +522,8 @@ Merci de confirmer ma commande !`;
               disabled={
                 !customerName ||
                 !customerPhone ||
-                (shippingMethod === "delivery" && !customerAddress)
+                !chosenDate ||
+                (shippingMethod === "delivery" && !neighborhood)
               }
               className="w-full py-4 bg-primary text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-primary-hover transition-all shadow-lg shadow-primary/25 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
             >

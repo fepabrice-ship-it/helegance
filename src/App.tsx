@@ -11,7 +11,14 @@ import { AuthProvider } from "./context/AuthProvider";
 import LoginPage from "./pages/LoginPage";
 import ScrollToTop from "./components/ScrollToTop";
 
+import { useEffect } from "react";
+import { ACTIVE_THEME } from "./config/ThemeConfig";
+
 function App() {
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", ACTIVE_THEME);
+  }, []);
+
   return (
     <Router>
       <ScrollToTop />

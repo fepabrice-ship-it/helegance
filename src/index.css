@@ -2,22 +2,83 @@
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap");
 
 @theme {
-  --color-background: #0a0f1e;
-  --color-foreground: #f8fafc;
-  --color-primary: #3b82f6;
-  --color-primary-hover: #2563eb;
-  --color-secondary: #64748b;
-  --color-secondary-hover: #475569;
-  --color-card: #1e293b;
-  --color-card-hover: #334155;
-  --color-input: #1e293b;
-  --color-border: #334155;
+  --color-background: var(--bg-color, #0a0f1e);
+  --color-foreground: var(--fg-color, #f8fafc);
+  --color-primary: var(--primary-color, #3b82f6);
+  --color-primary-hover: var(--primary-hover-color, #2563eb);
+  --color-primary-dark: var(--primary-dark-color, #1e3a8a);
+  --color-primary-light: var(--primary-light-color, #60a5fa);
+  --color-secondary: var(--secondary-color, #64748b);
+  --color-secondary-hover: var(--secondary-hover-color, #475569);
+  --color-card: var(--card-bg, #1e293b);
+  --color-card-hover: var(--card-hover-bg, #334155);
+  --color-input: var(--card-bg, #1e293b);
+  --color-border: var(--border-color, #334155);
 
   --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {
   color-scheme: dark;
+  --bg-color: #0a0f1e;
+  --fg-color: #f8fafc;
+  --primary-color: #3b82f6;
+  --primary-hover-color: #2563eb;
+  --primary-dark-color: #1e3a8a;
+  --primary-light-color: #60a5fa;
+  --secondary-color: #64748b;
+  --secondary-hover-color: #475569;
+  --card-bg: #1e293b;
+  --card-hover-bg: #334155;
+  --border-color: #334155;
+}
+
+/* bleu-ciel */
+[data-theme="bleu-ciel"] {
+  --primary-color: #0ea5e9;
+  --primary-hover-color: #0284c7;
+  --primary-dark-color: #075985;
+  --primary-light-color: #7dd3fc;
+}
+
+/* vert-claire-electrique */
+[data-theme="vert-claire-electrique"] {
+  --primary-color: #4ade80;
+  --primary-hover-color: #22c55e;
+  --primary-dark-color: #166534;
+  --primary-light-color: #86efac;
+}
+
+/* rose-bonbon */
+[data-theme="rose-bonbon"] {
+  --primary-color: #ec4899;
+  --primary-hover-color: #db2777;
+  --primary-dark-color: #831843;
+  --primary-light-color: #f472b6;
+}
+
+/* blanc */
+[data-theme="blanc"] {
+  --primary-color: #ffffff;
+  --primary-hover-color: #e2e8f0;
+  --primary-dark-color: #94a3b8;
+  --primary-light-color: #f8fafc;
+}
+
+/* jaune-claire-soleil */
+[data-theme="jaune-claire-soleil"] {
+  --primary-color: #fbbf24;
+  --primary-hover-color: #f59e0b;
+  --primary-dark-color: #92400e;
+  --primary-light-color: #fde68a;
+}
+
+/* or */
+[data-theme="or"] {
+  --primary-color: #d4af37;
+  --primary-hover-color: #b8860b;
+  --primary-dark-color: #7a5c12;
+  --primary-light-color: #f9d976;
 }
 
 body {
@@ -58,5 +119,9 @@ body {
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
-  background-image: linear-gradient(to right, #60a5fa, #a855f7);
+  background-image: linear-gradient(
+    to right,
+    var(--primary-color),
+    var(--primary-light-color)
+  );
 }

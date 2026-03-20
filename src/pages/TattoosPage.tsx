@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Filter,
   X,
@@ -33,6 +33,14 @@ const SIZES = [
   { label: "Moyen", value: "medium" },
   { label: "Grand", value: "large" },
 ];
+
+const ProductSkeleton = () => (
+  <div className="w-full h-full shrink-0 flex items-center justify-center p-2 relative animate-pulse">
+    <div className="w-full h-full bg-white/5 rounded-3xl border border-white/10 flex items-center justify-center">
+      <div className="w-20 h-20 bg-white/5 rounded-full" />
+    </div>
+  </div>
+);
 
 const TattoosPage: React.FC = () => {
   const location = useLocation();
@@ -73,32 +81,57 @@ const TattoosPage: React.FC = () => {
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [hasMore, setHasMore] = useState(true);
+  const PAGE_SIZE = 12;
+
   // Fetch tattoos
-  useEffect(() => {
-    const fetchTattoos = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase.from("tattoos").select("*");
-        if (error) throw error;
-        if (data) {
-          const mappedTattoos: Product[] = (data as Array<{id: string, name: string, price: number, size: string, style: string[], image_url: string}>).map((t) => ({
-            id: t.id,
-            name: t.name,
-            price: Number(t.price),
-            size: t.size as "small" | "medium" | "large",
-            style: t.style,
-            imageUrl: t.image_url,
-          }));
-          setTattoos(mappedTattoos);
-        }
-      } catch (err) {
-        console.error("Error fetching tattoos:", err);
-      } finally {
-        setLoading(false);
+  const fetchTattoos = useCallback(async (page: number, append: boolean = false) => {
+    if (page === 0) setLoading(true);
+    try {
+      let query = supabase
+        .from("tattoos")
+        .select("id, name, price, size, style, image_url");
+      
+      // Server-side filtering
+      if (selectedStyles.length > 0) {
+        query = query.overlaps("style", selectedStyles);
       }
-    };
-    fetchTattoos();
-  }, []);
+      if (selectedSizes.length > 0) {
+        query = query.in("size", selectedSizes);
+      }
+
+      const from = page * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      const { data, error } = await query
+        .order("created_at", { ascending: false })
+        .range(from, to);
+
+      if (error) throw error;
+      
+      if (data) {
+        const mappedTattoos: Product[] = (data as Array<{id: string, name: string, price: number, size: string, style: string[], image_url: string}>).map((t) => ({
+          id: t.id,
+          name: t.name,
+          price: Number(t.price),
+          size: t.size as "small" | "medium" | "large",
+          style: t.style,
+          imageUrl: t.image_url,
+        }));
+
+        setTattoos(prev => append ? [...prev, ...mappedTattoos] : mappedTattoos);
+        setHasMore(data.length === PAGE_SIZE);
+      }
+    } catch (err) {
+      console.error("Error fetching tattoos:", err);
+    } finally {
+      if (page === 0) setLoading(false);
+    }
+  }, [selectedStyles, selectedSizes]);
+
+  useEffect(() => {
+    fetchTattoos(0);
+  }, [fetchTattoos]);
 
   // Update styles from URL
   useEffect(() => {
@@ -125,11 +158,7 @@ const TattoosPage: React.FC = () => {
     }
   }, [selectedStyles, selectedSizes]);
 
-  const filteredTattoos = tattoos.filter((t) => {
-    const styleMatch = selectedStyles.length === 0 || t.style.some((s) => selectedStyles.includes(s));
-    const sizeMatch = selectedSizes.length === 0 || selectedSizes.includes(t.size);
-    return styleMatch && sizeMatch;
-  });
+  const filteredTattoos = tattoos;
 
   const activeTattoo = filteredTattoos[activeIndex];
   const currentItemQuantity = activeTattoo ? (cartItems[activeTattoo.id] || 0) : 0;
@@ -182,7 +211,7 @@ const TattoosPage: React.FC = () => {
 
   const totalItemsCount = Object.values(cartItems).reduce((acc, qty) => acc + qty, 0);
   const selectedItemsSummaryText = Object.entries(cartItems)
-    .filter(([_, qty]) => qty > 0)
+    .filter(([, qty]) => qty > 0)
     .map(([id, qty]) => {
       const tattoo = tattoos.find(t => t.id === id);
       return tattoo ? `${qty} ${tattoo.name.split(" ")[0]}` : null;
@@ -192,10 +221,19 @@ const TattoosPage: React.FC = () => {
 
   const handleNext = () => {
     if (scrollRef.current) {
-      const nextIndex = (activeIndex + 1) % filteredTattoos.length;
-      const slideWidth = scrollRef.current.offsetWidth;
-      scrollRef.current.scrollTo({ left: nextIndex * slideWidth, behavior: "smooth" });
-      setActiveIndex(nextIndex);
+      const nextIndex = activeIndex + 1;
+      
+      // Load more if near the end
+      if (nextIndex >= filteredTattoos.length - 2 && hasMore) {
+        const nextPage = Math.floor(filteredTattoos.length / PAGE_SIZE);
+        fetchTattoos(nextPage, true);
+      }
+
+      if (nextIndex < filteredTattoos.length) {
+        const slideWidth = scrollRef.current.offsetWidth;
+        scrollRef.current.scrollTo({ left: nextIndex * slideWidth, behavior: "smooth" });
+        setActiveIndex(nextIndex);
+      }
     }
   };
 
@@ -313,8 +351,20 @@ Merci de confirmer ma commande !`;
       </div>
 
       {loading ? (
-        <div className="flex-1 flex items-center justify-center">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <div className="flex-1 flex flex-col items-center justify-between gap-4 max-w-lg mx-auto w-full px-4 overflow-hidden">
+          <div className="w-full relative flex-1 flex flex-col min-h-0">
+            <div className="relative flex-1 bg-black/20 rounded-3xl border border-white/10 overflow-hidden shadow-2xl flex">
+              <ProductSkeleton />
+            </div>
+          </div>
+          <div className="w-full bg-white/5 border border-white/10 p-4 rounded-3xl backdrop-blur-md space-y-4 shrink-0 animate-pulse">
+            <div className="h-12 bg-white/5 rounded-xl" />
+            <div className="flex justify-between">
+              <div className="h-10 w-24 bg-white/5 rounded-xl" />
+              <div className="h-10 w-32 bg-white/5 rounded-xl" />
+            </div>
+            <div className="h-12 bg-white/5 rounded-2xl" />
+          </div>
         </div>
       ) : filteredTattoos.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center text-center px-4">

@@ -133,6 +133,18 @@ const TattoosPage: React.FC = () => {
     fetchTattoos(0);
   }, [fetchTattoos]);
 
+  // Proactive background pre-fetching
+  useEffect(() => {
+    if (!loading && hasMore && tattoos.length > 0) {
+      const nextPage = Math.floor(tattoos.length / PAGE_SIZE);
+      // Small delay to ensure the UI is responsive before triggering next background fetch
+      const timer = setTimeout(() => {
+        fetchTattoos(nextPage, true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [tattoos.length, hasMore, loading, fetchTattoos]);
+
   // Update styles from URL
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -223,12 +235,6 @@ const TattoosPage: React.FC = () => {
     if (scrollRef.current) {
       const nextIndex = activeIndex + 1;
       
-      // Load more if near the end
-      if (nextIndex >= filteredTattoos.length - 2 && hasMore) {
-        const nextPage = Math.floor(filteredTattoos.length / PAGE_SIZE);
-        fetchTattoos(nextPage, true);
-      }
-
       if (nextIndex < filteredTattoos.length) {
         const slideWidth = scrollRef.current.offsetWidth;
         scrollRef.current.scrollTo({ left: nextIndex * slideWidth, behavior: "smooth" });

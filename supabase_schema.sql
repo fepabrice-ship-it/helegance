@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS orders (
   customer_name TEXT NOT NULL,
   customer_phone TEXT NOT NULL,
   customer_address TEXT,
-  shipping_method TEXT CHECK (shipping_method IN ('pickup', 'delivery')),
+  shipping_method TEXT CHECK (shipping_method IN ('pickup', 'delivery', 'shipping')),
   total_amount NUMERIC NOT NULL,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'delivered', 'cancelled')),
   notes TEXT,
@@ -81,3 +81,32 @@ CREATE POLICY "Anyone can create order items" ON order_items FOR INSERT WITH CHE
 CREATE POLICY "Admins can see orders" ON orders FOR SELECT USING (true); -- Simplify for now
 CREATE POLICY "Admins can see items" ON order_items FOR SELECT USING (true); -- Simplify for now
 CREATE POLICY "Admins can update orders" ON orders FOR UPDATE USING (true); -- Simplify for now
+-- Create categories table
+CREATE TABLE IF NOT EXISTS categories (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create subcategories table
+CREATE TABLE IF NOT EXISTS subcategories (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  category_id UUID REFERENCES categories(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(category_id, name)
+);
+
+-- Update tattoos table
+ALTER TABLE tattoos 
+ADD COLUMN IF NOT EXISTS category_id UUID REFERENCES categories(id),
+ADD COLUMN IF NOT EXISTS subcategory_id UUID REFERENCES subcategories(id);
+
+-- Enable RLS for new tables
+ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE subcategories ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow public read access on categories" ON categories FOR SELECT USING (true);
+CREATE POLICY "Allow public read access on subcategories" ON subcategories FOR SELECT USING (true);
+CREATE POLICY "Admins can manage categories" ON categories FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Admins can manage subcategories" ON subcategories FOR ALL USING (true) WITH CHECK (true);

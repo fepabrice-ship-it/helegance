@@ -89,6 +89,17 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+button, 
+[role="button"],
+.cursor-pointer {
+  cursor: pointer !important;
+}
+
+select option {
+  background-color: #1a1a1a;
+  color: white;
+}
+
 /* Custom scrollbar for Webkit */
 ::-webkit-scrollbar {
   width: 8px;

@@ -8,6 +8,7 @@ import AdminPage from "./pages/AdminPage";
 import { CartProvider } from "./context/CartContext";
 import { ToastProvider } from "./context/ToastContext";
 import { AuthProvider } from "./context/AuthProvider";
+import { RegionProvider } from "./context/RegionContext";
 import LoginPage from "./pages/LoginPage";
 import ScrollToTop from "./components/ScrollToTop";
 
@@ -23,26 +24,29 @@ function App() {
     <Router>
       <ScrollToTop />
       <AuthProvider>
-        <ToastProvider>
-          <CartProvider>
-            <Layout>
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/tattoos" element={<TattoosPage />} />
-                <Route path="/reseller" element={<ResellerPage />} />
-                <Route path="/cart" element={<CartPage />} />
-                <Route path="/admin" element={<AdminPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route
-                  path="*"
-                  element={
-                    <div className="text-center py-20">Page introuvable</div>
-                  }
-                />
-              </Routes>
-            </Layout>
-          </CartProvider>
-        </ToastProvider>
+        <RegionProvider>
+          <ToastProvider>
+            <CartProvider>
+              <Layout>
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/tattoos" element={<TattoosPage />} />
+                  <Route path="/tatoos" element={<TattoosPage />} />
+                  <Route path="/reseller" element={<ResellerPage />} />
+                  <Route path="/cart" element={<CartPage />} />
+                  <Route path="/admin" element={<AdminPage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route
+                    path="*"
+                    element={
+                      <div className="text-center py-20">Page introuvable</div>
+                    }
+                  />
+                </Routes>
+              </Layout>
+            </CartProvider>
+          </ToastProvider>
+        </RegionProvider>
       </AuthProvider>
     </Router>
   );

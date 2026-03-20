@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ShoppingBag, Menu, X, User, Search } from "lucide-react";
 import { useCart } from "../context/CartContext";
+import { useRegion } from "../context/RegionContext";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,6 +12,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const { totalItems } = useCart();
+  const { region, setRegion } = useRegion();
   const cartItemCount = totalItems || 0;
 
   const navLinks = [
@@ -23,7 +25,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans transition-colors duration-300">
       {/* Navigation */}
       <nav className="fixed w-full z-50 top-0 start-0 border-b border-white/10 bg-background/80 backdrop-blur-md">
-        <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+        <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4 py-2 md:p-4">
           <Link to="/" className="flex items-center space-x-2 group">
             <img
               src="/images/g-logo.jpg"
@@ -36,10 +38,27 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </Link>
 
           <div className="flex md:order-2 space-x-3 md:space-x-4 items-center">
-            {/* Search - Hidden on mobile for simplicity initially */}
             <button className="p-2 text-gray-400 hover:text-white transition-colors hidden sm:block">
               <Search size={20} />
             </button>
+
+            {/* Region Switcher */}
+            <div className="flex items-center bg-white/5 border border-white/10 rounded-full p-1 gap-1">
+              <button 
+                onClick={() => setRegion("CM")}
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${region === "CM" ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-gray-500 hover:text-white"}`}
+                title="Cameroun"
+              >
+                CM
+              </button>
+              <button 
+                onClick={() => setRegion("CG")}
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${region === "CG" ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-gray-500 hover:text-white"}`}
+                title="Congo"
+              >
+                CG
+              </button>
+            </div>
 
             {/* Cart Icon */}
             <Link
@@ -100,7 +119,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </nav>
 
       {/* Main Content */}
-      <main className="flex-grow pt-16 md:pt-20 px-4 max-w-7xl mx-auto w-full">
+      <main className="grow pt-14 md:pt-20 px-4 max-w-7xl mx-auto w-full">
         {children}
       </main>
 

@@ -47,6 +47,7 @@ const ProductManager: React.FC = () => {
   const [itemToDelete, setItemToDelete] = useState<string | "bulk" | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadPreview, setUploadPreview] = useState<string | null>(null);
+  const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -90,6 +91,27 @@ const ProductManager: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const deleteImageFromStorage = async (url: string) => {
+    try {
+      if (!url.includes("tatoo_images")) return; // Only delete if it's in our storage
+
+      const parts = url.split("/");
+      const fileName = parts[parts.length - 1];
+
+      const { error } = await supabase.storage
+        .from("tatoo_images")
+        .remove([fileName]);
+
+      if (error) {
+        console.error("Error deleting image from storage:", error);
+      } else {
+        console.log("Successfully deleted old image:", fileName);
+      }
+    } catch (err) {
+      console.error("Failed to delete image:", err);
+    }
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -143,6 +165,11 @@ const ProductManager: React.FC = () => {
 
     try {
       if (editingProduct) {
+        // If image changed, delete old one
+        if (originalImageUrl && originalImageUrl !== formData.image_url) {
+          await deleteImageFromStorage(originalImageUrl);
+        }
+
         const { error } = await supabase
           .from("tattoos")
           .update(dataToSave)
@@ -155,9 +182,9 @@ const ProductManager: React.FC = () => {
 
       setIsAdding(false);
       setEditingProduct(null);
+      setOriginalImageUrl(null);
       resetForm();
       fetchData();
-      setUploadPreview(null);
     } catch (err) {
       alert("Erreur lors de l'enregistrement");
       console.error(err);
@@ -174,12 +201,34 @@ const ProductManager: React.FC = () => {
     
     try {
       if (itemToDelete === "bulk") {
+        // 1. Get image URLs of products to be deleted
+        const productsToDelete = products.filter(p => selectedIDs.includes(p.id));
+        
+        // 2. Delete records from database
         const { error } = await supabase.from("tattoos").delete().in("id", selectedIDs);
         if (error) throw error;
+
+        // 3. Delete images from storage
+        for (const product of productsToDelete) {
+          if (product.image_url) {
+            await deleteImageFromStorage(product.image_url);
+          }
+        }
+        
         setSelectedIDs([]);
       } else {
+        // 1. Find product to delete
+        const productToDelete = products.find(p => p.id === itemToDelete);
+
+        // 2. Delete record from database
         const { error } = await supabase.from("tattoos").delete().eq("id", itemToDelete);
         if (error) throw error;
+
+        // 3. Delete image from storage
+        if (productToDelete?.image_url) {
+          await deleteImageFromStorage(productToDelete.image_url);
+        }
+
         setSelectedIDs(prev => prev.filter(id => id !== itemToDelete));
       }
       fetchData();
@@ -220,6 +269,7 @@ const ProductManager: React.FC = () => {
 
   const startEdit = (product: Product) => {
     setEditingProduct(product);
+    setOriginalImageUrl(product.image_url);
     setFormData({
       name: product.name,
       price: product.price.toString(),
@@ -280,6 +330,7 @@ const ProductManager: React.FC = () => {
               onClick={() => {
                 setIsAdding(false);
                 setEditingProduct(null);
+                setOriginalImageUrl(null);
               }}
               className="text-gray-500 hover:text-white"
             >

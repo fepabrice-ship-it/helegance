@@ -16,6 +16,7 @@ import { supabase } from "../lib/supabase";
 import { useToast } from "../context/ToastContext";
 import { useRegion } from "../context/RegionContext";
 import type { Product } from "../context/CartContext";
+import emailjs from "@emailjs/browser";
 
 // Constants
 const STYLES = [
@@ -65,7 +66,6 @@ const TattoosPage: React.FC = () => {
   
   // Order State
   const [cartItems, setCartItems] = useState<Record<string, number>>({});
-  const [buyMode, setBuyMode] = useState<"pack" | "pieces">("pack");
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const scrollRef = React.useRef<HTMLDivElement>(null);
   
@@ -157,7 +157,6 @@ const TattoosPage: React.FC = () => {
   // Adjust mode based on region
   useEffect(() => {
     if (region === "CG") {
-      setBuyMode("pack");
       setShippingMethod("delivery");
     }
   }, [region]);
@@ -176,27 +175,11 @@ const TattoosPage: React.FC = () => {
   const currentItemQuantity = activeTattoo ? (cartItems[activeTattoo.id] || 0) : 0;
 
   // Pricing Logic
-  const getUnitPriceForProduct = (_tattoo: Product, mode: "pack" | "pieces", size: "small" | "medium" | "large") => {
-    if (mode === "pack") {
-      if (size === "small") return 5000 / 30;
-      if (size === "medium") return 6000 / 12;
-      if (size === "large") return 1500;
-    } else {
-      if (size === "small") return 500;
-      if (size === "medium") return 1000;
-      if (size === "large") return 3000;
-    }
-    return 0;
-  };
 
-  const getSubtotalForProduct = (tattoo: Product, qty: number, mode: "pack" | "pieces") => {
-    if (mode === "pack") {
-      if (tattoo.size === "small") return 5000 * qty;
-      if (tattoo.size === "medium") return 6000 * qty;
-      if (tattoo.size === "large") return 15000 * qty;
-    } else {
-      return getUnitPriceForProduct(tattoo, mode, tattoo.size) * qty;
-    }
+  const getSubtotalForProduct = (tattoo: Product, qty: number) => {
+    if (tattoo.size === "small") return 5000 * qty; // New price: 5000 FCFA per pack
+    if (tattoo.size === "medium") return 6000 * qty;
+    if (tattoo.size === "large") return 15000 * qty;
     return 0;
   };
 
@@ -204,7 +187,7 @@ const TattoosPage: React.FC = () => {
     return Object.entries(cartItems).reduce((acc, [id, qty]) => {
       const tattoo = tattoos.find(t => t.id === id);
       if (!tattoo || qty <= 0) return acc;
-      return acc + getSubtotalForProduct(tattoo, qty, buyMode); // Use global buyMode for pricing
+      return acc + getSubtotalForProduct(tattoo, qty); // Use global buyMode for pricing
     }, 0);
   };
 
@@ -231,35 +214,16 @@ const TattoosPage: React.FC = () => {
     .filter(Boolean)
     .join(" + ");
 
-  const handleNext = () => {
-    if (scrollRef.current) {
-      const nextIndex = activeIndex + 1;
-      
-      if (nextIndex < filteredTattoos.length) {
-        const slideWidth = scrollRef.current.offsetWidth;
-        scrollRef.current.scrollTo({ left: nextIndex * slideWidth, behavior: "smooth" });
-        setActiveIndex(nextIndex);
-      }
+  // Carousel Navigation
+  const paginate = (newDirection: number) => {
+    const nextIndex = activeIndex + newDirection;
+    if (nextIndex >= 0 && nextIndex < filteredTattoos.length) {
+      setActiveIndex(nextIndex);
     }
   };
 
-  const handlePrev = () => {
-    if (scrollRef.current) {
-      const prevIndex = (activeIndex - 1 + filteredTattoos.length) % filteredTattoos.length;
-      const slideWidth = scrollRef.current.offsetWidth;
-      scrollRef.current.scrollTo({ left: prevIndex * slideWidth, behavior: "smooth" });
-      setActiveIndex(prevIndex);
-    }
-  };
-
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const scrollLeft = e.currentTarget.scrollLeft;
-    const slideWidth = e.currentTarget.offsetWidth;
-    const newIndex = Math.round(scrollLeft / slideWidth);
-    if (newIndex !== activeIndex && newIndex < filteredTattoos.length) {
-      setActiveIndex(newIndex);
-    }
-  };
+  const handleNext = () => paginate(1);
+  const handlePrev = () => paginate(-1);
 
   const handleQuickOrder = async () => {
     setIsSubmitting(true);
@@ -295,8 +259,8 @@ const TattoosPage: React.FC = () => {
           product_name: tattoo?.name || "Tatouage",
           size: tattoo?.size || "small",
           quantity: qty,
-          unit_price: tattoo ? getUnitPriceForProduct(tattoo, buyMode, tattoo.size) : 0,
-          is_reseller_pack: buyMode === "pack",
+          unit_price: tattoo ? (tattoo.size === "small" ? 5000/30 : tattoo.size === "medium" ? 6000/12 : 1500) : 0,
+          is_reseller_pack: true,
         };
       });
 
@@ -306,13 +270,13 @@ const TattoosPage: React.FC = () => {
       const orderItemsText = Object.entries(cartItems)
         .map(([id, qty]) => {
           const tattoo = tattoos.find(t => t.id === id);
-          return `- ${tattoo?.name} (${buyMode === "pack" ? "Pack" : "Détail"}) x${qty}`;
+          return `- ${tattoo?.name} (Pack) x${qty}`;
         })
         .join("\n");
 
       const orderMessage = `Bonjour Helegance !
       
-COMMANDE MULTIPLE (${buyMode === "pack" ? "PACKS" : "DÉTAIL"}) :
+COMMANDE MULTIPLE (PACKS) :
 ${orderItemsText}
 
 PRIX TOTAL : ${finalTotal.toLocaleString()} FCFA
@@ -325,6 +289,34 @@ DATE SOUHAITÉE : ${new Date(chosenDate).toLocaleDateString("fr-FR")}
 ${notes ? `NOTES : ${notes}` : ""}
 
 Merci de confirmer ma commande !`;
+
+      // Email Notification (EmailJS)
+      try {
+        const templateParams = {
+          to_email: "belloboemmanuel@gmail.com, fepabrice@gmail.com",
+          to_name: "Helegance Admin",
+          from_name: customerName,
+          customer_phone: customerPhone,
+          customer_address: neighborhood || customerAddress || "Agence/Expédition",
+          order_total: `${finalTotal.toLocaleString()} FCFA`,
+          order_items: orderItemsText,
+          delivery_date: new Date(chosenDate).toLocaleDateString("fr-FR"),
+          shipping_method: shippingMethod,
+          notes: notes || "Aucune note",
+        };
+
+        if (import.meta.env.VITE_EMAILJS_TEMPLATE_ID && import.meta.env.VITE_EMAILJS_TEMPLATE_ID !== "YOUR_TEMPLATE_ID") {
+          await emailjs.send(
+            import.meta.env.VITE_EMAILJS_SERVICE_ID,
+            import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+            templateParams,
+            import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+          );
+          console.log("Email notification sent successfully.");
+        }
+      } catch (emailErr) {
+        console.error("EmailJS Error:", emailErr);
+      }
 
       window.open(`https://wa.me/237692317909?text=${encodeURIComponent(orderMessage)}`, "_blank");
       
@@ -379,33 +371,52 @@ Merci de confirmer ma commande !`;
         </div>
       ) : (
         <div className="flex-1 flex flex-col items-center justify-between gap-4 max-w-lg mx-auto w-full px-4 overflow-hidden">
-          {/* NATIVE SCROLL SNAP CAROUSEL - INSTANT FEEDBACK */}
-          <div className="w-full relative flex-1 flex flex-col min-h-0">
-            <div 
-              ref={scrollRef}
-              onScroll={handleScroll}
-              className="relative flex-1 bg-black/20 rounded-3xl border border-white/10 overflow-x-auto snap-x snap-mandatory no-scrollbar shadow-2xl flex"
+          <div className="w-full relative flex-1 flex flex-col min-h-0 bg-black/20 rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
+            <motion.div 
+              className="relative flex-1 flex items-center cursor-grab active:cursor-grabbing"
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.2}
+              onDragEnd={(_e, { offset, velocity }) => {
+                const swipe = Math.abs(offset.x) > 50 || Math.abs(velocity.x) > 500;
+                if (swipe) {
+                  const direction = offset.x > 0 ? -1 : 1;
+                  paginate(direction);
+                }
+              }}
             >
-              {filteredTattoos.map((tattoo, index) => (
-                <div key={tattoo.id} className="w-full h-full shrink-0 snap-center flex items-center justify-center p-2 relative">
+              <AnimatePresence mode="popLayout" initial={false}>
+                <motion.div
+                  key={activeIndex}
+                  initial={{ opacity: 0, scale: 0.9, x: 100 }}
+                  animate={{ opacity: 1, scale: 1, x: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, x: -100 }}
+                  transition={{ 
+                    type: "spring", 
+                    stiffness: 300, 
+                    damping: 30,
+                    opacity: { duration: 0.2 }
+                  }}
+                  className="w-full h-full shrink-0 flex items-center justify-center p-2 absolute inset-0"
+                >
                   <img
-                    src={tattoo.imageUrl}
-                    alt={tattoo.name}
-                    className="w-full h-full object-contain pointer-events-none"
-                    loading={index === activeIndex ? "eager" : "lazy"}
+                    src={activeTattoo?.imageUrl}
+                    alt={activeTattoo?.name}
+                    className="w-full h-full object-contain pointer-events-none drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+                    loading="eager"
                   />
                   
                   {/* LABELS OVERLAY */}
                   <div className="absolute top-3 left-3 flex flex-wrap gap-1">
-                    {tattoo.style.slice(0, 2).map(s => (
+                    {activeTattoo?.style.slice(0, 2).map(s => (
                       <span key={s} className="bg-primary/90 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider">
                         {s}
                       </span>
                     ))}
                   </div>
-                </div>
-              ))}
-            </div>
+                </motion.div>
+              </AnimatePresence>
+            </motion.div>
 
             {/* ARROWS - FLOATING OVER THE SCROLLABLE AREA */}
             <button 
@@ -425,27 +436,31 @@ Merci de confirmer ma commande !`;
               {activeIndex + 1} / {filteredTattoos.length}
             </div>
             
-            <h2 className="text-lg font-black mt-2 text-center uppercase truncate w-full">{activeTattoo?.name}</h2>
+            <div className="h-8 flex items-center justify-center mt-2">
+              <AnimatePresence mode="wait">
+                <motion.h2 
+                  key={activeTattoo?.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                  className="text-lg font-black text-center uppercase truncate w-full"
+                >
+                   {activeTattoo?.name}
+                </motion.h2>
+              </AnimatePresence>
+            </div>
           </div>
 
           {/* QUICK ORDER CONTROLS - VISIBLE ON SAME VIEWPORT */}
           <div className="w-full bg-white/5 border border-white/10 p-4 rounded-3xl backdrop-blur-md space-y-4 shrink-0">
             
             <div className={`flex p-1 bg-black/40 rounded-xl border border-white/10 ${region === "CG" ? "opacity-50 pointer-events-none" : ""}`}>
-              <button 
-                onClick={() => setBuyMode("pack")}
-                className={`flex-1 py-3 rounded-lg text-[11px] font-black transition-all ${buyMode === "pack" ? "bg-primary text-white" : "text-gray-500 hover:text-gray-300"}`}
+              <div 
+                className="flex-1 py-3 rounded-lg text-[11px] font-black transition-all bg-primary text-white text-center"
               >
-                PACK (30)
-              </button>
-              {region === "CM" && (
-                <button 
-                  onClick={() => setBuyMode("pieces")}
-                  className={`flex-1 py-3 rounded-lg text-[11px] font-black transition-all ${buyMode === "pieces" ? "bg-primary text-white" : "text-gray-500 hover:text-gray-300"}`}
-                >
-                  EN DÉTAIL
-                </button>
-              )}
+                PAQUET DE 30 À 5000 FCFA
+              </div>
             </div>
 
             {/* Quantity & Price Row */}
@@ -561,7 +576,7 @@ Merci de confirmer ma commande !`;
                       return (
                         <div key={id} className="flex justify-between items-center text-[11px] font-bold">
                           <span className="text-gray-300 truncate max-w-[150px]">{tattoo.name}</span>
-                          <span className="text-primary whitespace-nowrap">x{qty} ({buyMode === "pack" ? "Pack" : "Détail"})</span>
+                          <span className="text-primary whitespace-nowrap">x{qty} (Pack)</span>
                         </div>
                       );
                     })}
@@ -574,8 +589,8 @@ Merci de confirmer ma commande !`;
                       <input type="text" value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder="Ex: John Doe" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-primary transition-all outline-none" />
                    </div>
                    <div className="space-y-1">
-                      <label className="text-[9px] font-black uppercase text-gray-500 ml-1">Téléphone</label>
-                      <input type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} placeholder="6XX XXX XXX" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-primary transition-all outline-none" />
+                      <label className="text-[9px] font-black uppercase text-gray-500 ml-1">Téléphone (WhatsApp)</label>
+                      <input type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} placeholder="00237..." className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-primary transition-all outline-none" />
                    </div>
                 </div>
 
@@ -598,18 +613,10 @@ Merci de confirmer ma commande !`;
 
                 {shippingMethod === "delivery" && (
                   <div className="space-y-3">
-                     {totalItemsCount < 4 ? (
-                       <div className="bg-red-500/10 border border-red-500/20 p-3 rounded-xl">
-                         <p className="text-red-400 text-[10px] font-bold text-center">
-                           ⚠️ Nous livrons à partir de 4 articles minimum.
-                         </p>
-                       </div>
-                     ) : (
-                       <>
-                         <input type="text" value={neighborhood} onChange={e => setNeighborhood(e.target.value)} placeholder="Quartier..." className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none" />
-                         <input type="text" value={customerAddress} onChange={e => setCustomerAddress(e.target.value)} placeholder="Adresse précise..." className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none" />
-                       </>
-                     )}
+                        <>
+                          <input type="text" value={neighborhood} onChange={e => setNeighborhood(e.target.value)} placeholder="Quartier..." className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none" />
+                          <input type="text" value={customerAddress} onChange={e => setCustomerAddress(e.target.value)} placeholder="Adresse précise..." className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none" />
+                        </>
                   </div>
                 )}
 
@@ -636,11 +643,9 @@ Merci de confirmer ma commande !`;
                     placeholder="Ex: 2 motifs lions, 3 papillons..." 
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-primary min-h-[80px]"
                   />
-                  {buyMode === "pieces" && (
-                    <p className="text-[9px] text-gray-500 italic mt-1 px-1">
-                      ✨ Ne vous inquiétez pas, vous pourrez également faire vos choix définitifs directement parmi notre panoplie lors de la confirmation !
-                    </p>
-                  )}
+                  <p className="text-[9px] text-gray-500 italic mt-1 px-1">
+                    ✨ Ne vous inquiétez pas, vous pourrez également faire vos choix définitifs directement parmi notre panoplie lors de la confirmation !
+                  </p>
                 </div>
 
                 <div className="space-y-1 relative">
@@ -655,7 +660,7 @@ Merci de confirmer ma commande !`;
                   <span className="text-xl font-black text-primary">{(getTotalPrice() + (shippingMethod === "delivery" ? 1000 : 0)).toLocaleString()} F</span>
                 </div>
                 <button 
-                  disabled={!customerName || !customerPhone || !chosenDate || (shippingMethod === "delivery" && (!neighborhood || totalItemsCount < 4)) || isSubmitting}
+                  disabled={!customerName || !customerPhone || !chosenDate || (shippingMethod === "delivery" && !neighborhood) || isSubmitting}
                   onClick={handleQuickOrder}
                   className="w-full bg-primary py-4 rounded-xl font-black text-xs tracking-widest uppercase disabled:opacity-50"
                 >

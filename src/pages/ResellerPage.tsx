@@ -30,7 +30,7 @@ const ResellerPage: React.FC = () => {
 
     if (pack.name.includes("Découverte")) {
       size = "small";
-      unitPrice = 5000 / 30;
+      unitPrice = 1000 / 30;
     } else if (pack.name.includes("Croissance")) {
       size = "medium";
       unitPrice = 6000 / 12;
@@ -87,9 +87,9 @@ const ResellerPage: React.FC = () => {
   const packs: ResellerPack[] = [
     {
       name: "Pack Découverte",
-      price: "5 000",
+      price: "1 000",
       items: "30 Tatouages (Small)",
-      profit: "Gain estimé: +10 000 FCFA",
+      profit: "Gain estimé: +14 000 FCFA",
       features: [
         "Sélection aléatoire",
         "Packaging standard",

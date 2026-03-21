@@ -58,15 +58,8 @@ const CartPage: React.FC = () => {
 
   const shippingFee = shippingMethod === "delivery" ? 1000 : 0;
   const finalTotal = cartTotal + shippingFee;
-  const totalQuantity = cart.reduce((acc, item) => acc + item.quantity, 0);
-  const canDeliver = totalQuantity >= 4;
 
-  // Auto-switch to pickup if delivery is selected but quantity is too low
-  React.useEffect(() => {
-    if (!canDeliver && shippingMethod === "delivery") {
-      setShippingMethod("pickup");
-    }
-  }, [canDeliver, shippingMethod]);
+
 
   // Auto-save incomplete order
   React.useEffect(() => {
@@ -360,13 +353,13 @@ Merci de confirmer ma commande !`;
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-gray-500 uppercase px-1">
-                    Téléphone
+                    Téléphone (WhatsApp)
                   </label>
                   <input
                     type="tel"
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
-                    placeholder="6XX XXX XXX"
+                    placeholder="00237..."
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                   />
                 </div>
@@ -397,14 +390,9 @@ Merci de confirmer ma commande !`;
                   </button>
 
                   <button
-                    onClick={() => canDeliver && setShippingMethod("delivery")}
-                    className={`flex items-center gap-4 p-4 rounded-xl border transition-all relative ${shippingMethod === "delivery" ? "border-primary bg-primary/10 ring-1 ring-primary" : "border-white/10 bg-white/5 hover:border-white/20"} ${!canDeliver ? "opacity-50 cursor-not-allowed" : ""}`}
+                    onClick={() => setShippingMethod("delivery")}
+                    className={`flex items-center gap-4 p-4 rounded-xl border transition-all relative ${shippingMethod === "delivery" ? "border-primary bg-primary/10 ring-1 ring-primary" : "border-white/10 bg-white/5 hover:border-white/20"}`}
                   >
-                    {!canDeliver && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-500 text-[10px] text-white px-2 py-0.5 rounded-full font-bold whitespace-nowrap animate-pulse">
-                        MIN. 4 ARTICLES
-                      </div>
-                    )}
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center ${shippingMethod === "delivery" ? "bg-primary text-white" : "bg-white/10 text-gray-400"}`}
                     >
@@ -420,12 +408,7 @@ Merci de confirmer ma commande !`;
                     </div>
                   </button>
                 </div>
-                {!canDeliver && (
-                  <p className="text-[11px] text-red-400 italic px-1 flex items-center gap-2">
-                    ⚠️ La livraison est disponible uniquement pour les commandes
-                    de 4 tatouages ou plus.
-                  </p>
-                )}
+
               </div>
 
               {shippingMethod === "delivery" && (

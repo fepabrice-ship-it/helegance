@@ -9,8 +9,9 @@ import { CartProvider } from "./context/CartContext";
 import { ToastProvider } from "./context/ToastContext";
 import { AuthProvider } from "./context/AuthProvider";
 import { RegionProvider } from "./context/RegionContext";
-import LoginPage from "./pages/LoginPage";
-import ScrollToTop from "./components/ScrollToTop";
+ import LoginPage from "./pages/LoginPage";
+ import UpdatePasswordPage from "./pages/UpdatePasswordPage";
+ import ScrollToTop from "./components/ScrollToTop";
 
 import { useEffect } from "react";
 import { ACTIVE_THEME } from "./config/ThemeConfig";
@@ -34,8 +35,9 @@ function App() {
                   <Route path="/tatoos" element={<TattoosPage />} />
                   <Route path="/reseller" element={<ResellerPage />} />
                   <Route path="/cart" element={<CartPage />} />
-                  <Route path="/admin" element={<AdminPage />} />
-                  <Route path="/login" element={<LoginPage />} />
+                   <Route path="/admin" element={<AdminPage />} />
+                   <Route path="/login" element={<LoginPage />} />
+                   <Route path="/update-password" element={<UpdatePasswordPage />} />
                   <Route
                     path="*"
                     element={

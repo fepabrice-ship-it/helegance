@@ -274,7 +274,7 @@ const TattoosPage: React.FC = () => {
         })
         .join("\n");
 
-      const orderMessage = `Bonjour Helegance !
+      const orderMessage = `Bonjour Tatoo Pinterest !
       
 COMMANDE MULTIPLE (PACKS) :
 ${orderItemsText}
@@ -294,7 +294,7 @@ Merci de confirmer ma commande !`;
       try {
         const templateParams = {
           to_email: "belloboemmanuel@gmail.com, fepabrice@gmail.com",
-          to_name: "Helegance Admin",
+          to_name: "Tatoo Pinterest Admin",
           from_name: customerName,
           customer_phone: customerPhone,
           customer_address: neighborhood || customerAddress || "Agence/Expédition",
@@ -338,7 +338,7 @@ Merci de confirmer ma commande !`;
       {/* Mini Header / Filters Button */}
       <div className="px-4 flex justify-between items-center mb-2 shrink-0">
         <h1 className="text-xl font-black uppercase tracking-tighter">
-          HELEGANCE <span className="text-primary italic">TATTOOS</span>
+          TATOO PINTEREST <span className="text-primary italic">TATTOOS</span>
         </h1>
         <button 
           onClick={() => setIsFilterOpen(true)}
@@ -575,6 +575,7 @@ Merci de confirmer ma commande !`;
                       if (!tattoo || qty <= 0) return null;
                       return (
                         <div key={id} className="flex justify-between items-center text-[11px] font-bold">
+                          <p className="text-gray-400">L'expérience Tatoo Pinterest</p>
                           <span className="text-gray-300 truncate max-w-[150px]">{tattoo.name}</span>
                           <span className="text-primary whitespace-nowrap">x{qty} (Pack)</span>
                         </div>

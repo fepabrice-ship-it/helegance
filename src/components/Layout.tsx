@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ShoppingBag, Menu, X, User, Search } from "lucide-react";
 import { useCart } from "../context/CartContext";
-import { useRegion } from "../context/RegionContext";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,7 +11,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const { totalItems } = useCart();
-  const { region, setRegion } = useRegion();
   const cartItemCount = totalItems || 0;
 
   const navLinks = [
@@ -28,12 +26,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4 py-2 md:p-4">
           <Link to="/" className="flex items-center space-x-2 group">
             <img
-              src="/images/g-logo.jpg"
-              alt="Helegance Logo"
+              src="/images/logo-final.png"
+              alt="Tatoo Pinterest Logo"
               className="w-8 h-8 object-contain group-hover:scale-110 transition-transform duration-300"
             />
             <span className="self-center text-2xl font-semibold whitespace-nowrap text-white tracking-tight group-hover:text-primary transition-colors duration-300">
-              Helegance
+              Tatoo Pinterest
             </span>
           </Link>
 
@@ -42,23 +40,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <Search size={20} />
             </button>
 
-            {/* Region Switcher */}
-            <div className="flex items-center bg-white/5 border border-white/10 rounded-full p-1 gap-1">
-              <button 
-                onClick={() => setRegion("CM")}
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${region === "CM" ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-gray-500 hover:text-white"}`}
-                title="Cameroun"
-              >
-                CM
-              </button>
-              <button 
-                onClick={() => setRegion("CG")}
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${region === "CG" ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-gray-500 hover:text-white"}`}
-                title="Congo"
-              >
-                CG
-              </button>
-            </div>
 
             {/* Cart Icon */}
             <Link
@@ -132,12 +113,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               className="flex items-center mb-4 sm:mb-0 space-x-2 rtl:space-x-reverse group"
             >
               <img
-                src="/images/g-logo.jpg"
-                alt="Helegance Logo"
+                src="/images/logo-final.png"
+                alt="Tatoo Pinterest Logo"
                 className="w-6 h-6 object-contain grayscale group-hover:grayscale-0 transition-all focus:outline-none"
               />
               <span className="self-center text-2xl font-semibold whitespace-nowrap text-white">
-                Helegance
+                Tatoo Pinterest
               </span>
             </Link>
             <ul className="flex flex-wrap items-center mb-6 text-sm font-medium text-gray-400 sm:mb-0">
@@ -176,7 +157,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <span className="block text-sm text-gray-500 sm:text-center">
             © {new Date().getFullYear()}{" "}
             <Link to="/" className="hover:underline hover:text-primary">
-              Helegance™
+              Tatoo Pinterest™
             </Link>
             . Tous droits réservés.
           </span>

@@ -74,9 +74,9 @@ const AdminPage: React.FC = () => {
           .lte("created_at", `${dateFilter}T23:59:59`);
       }
 
-      const { data, error } = await query.order("created_at", {
-        ascending: false,
-      });
+      const { data, error } = await query
+        .order("created_at", { ascending: false })
+        .limit(50);
 
       if (error) throw error;
       setOrders(data || []);

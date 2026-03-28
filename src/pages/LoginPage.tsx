@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { LogIn, Mail, Lock, Eye, EyeOff, AlertCircle, ArrowLeft } from "lucide-react";
 import { useToast } from "../context/ToastContext";
+import { useAuth } from "../context/AuthContext";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -14,6 +15,13 @@ const LoginPage: React.FC = () => {
   const [resetMode, setResetMode] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const { addToast } = useToast();
+  const { user, isAdmin, loading: authLoading } = useAuth();
+
+  React.useEffect(() => {
+    if (!authLoading && user && isAdmin) {
+      navigate("/admin");
+    }
+  }, [user, isAdmin, authLoading, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,7 +133,7 @@ const LoginPage: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white focus:border-primary outline-none transition-all"
-                  placeholder="admin@helegance.com"
+                  placeholder="admin@tatoopinterest.com"
                 />
               </div>
             </div>

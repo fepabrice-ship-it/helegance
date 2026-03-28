@@ -47,12 +47,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   return (
     <div className="w-64 bg-gray-900 border-r border-white/10 h-screen sticky top-0 flex flex-col pt-8">
       <div className="px-6 mb-10">
-        <h2 className="text-xl font-black text-white tracking-widest uppercase flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-xs">
-            H
-          </div>
-          Helegance
-        </h2>
+        <span className="text-xl font-bold text-white tracking-tight">Tatoo Pinterest</span>
         <p className="text-[10px] text-gray-500 font-bold uppercase mt-1 tracking-widest">
           Admin Panel
         </p>

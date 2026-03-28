@@ -17,7 +17,7 @@ export const RegionProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     const detectRegion = async () => {
       // 1. Check localStorage first
-      const saved = localStorage.getItem("helegance_region");
+      const saved = localStorage.getItem("tatoo_pinterest_region");
       if (saved) {
         setRegionState(saved as Region);
         setIsLoading(false);
@@ -49,7 +49,7 @@ export const RegionProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const setRegion = (newRegion: Region) => {
     setRegionState(newRegion);
-    localStorage.setItem("helegance_region", newRegion);
+    localStorage.setItem("tatoo_pinterest_region", newRegion);
   };
 
   return (

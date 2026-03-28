@@ -131,10 +131,10 @@ const ResellerPage: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-4xl md:text-6xl font-bold text-white mb-6 uppercase tracking-tighter"
           >
-            Devenez Partenaire <span className="text-primary">Helegance</span>
+            Devenez Partenaire <span className="text-primary">Tatoo Pinterest</span>
           </motion.h1>
           <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
-            Rejoignez notre réseau de revendeurs et développez votre propre
+            Rejoignez l'univers Tatoo Pinterest et devenez partenaire et développez votre propre
             activité avec des produits premium et une marque forte.
           </p>
           <div className="flex flex-wrap justify-center gap-4">

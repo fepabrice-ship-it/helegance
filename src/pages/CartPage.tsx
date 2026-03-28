@@ -25,9 +25,15 @@ const CartPage: React.FC = () => {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
-  const [neighborhood, setNeighborhood] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("");
   const [chosenDate, setChosenDate] = useState("");
   const [notes, setNotes] = useState("");
+
+  const pickupPoints = [
+    "Yaoundé - Chapelle Obili",
+    "Douala - Malanguè",
+    "Bafoussam- Quatier brasserie"
+  ];
 
   const dynamicPlaceholder = React.useMemo(() => {
     const allStyles = Array.from(
@@ -59,8 +65,6 @@ const CartPage: React.FC = () => {
   const shippingFee = shippingMethod === "delivery" ? 1000 : 0;
   const finalTotal = cartTotal + shippingFee;
 
-
-
   // Auto-save incomplete order
   React.useEffect(() => {
     const saveIncompleteOrder = async () => {
@@ -72,7 +76,7 @@ const CartPage: React.FC = () => {
           customer_name: customerName,
           customer_phone: customerPhone,
           customer_address: customerAddress,
-          neighborhood: neighborhood,
+          neighborhood: selectedLocation,
           selected_products: cart,
           chosen_date: chosenDate || null,
           shipping_method: shippingMethod,
@@ -100,7 +104,7 @@ const CartPage: React.FC = () => {
     customerName,
     customerPhone,
     customerAddress,
-    neighborhood,
+    selectedLocation,
     cart,
     chosenDate,
     shippingMethod,
@@ -113,8 +117,10 @@ const CartPage: React.FC = () => {
         customer_name: customerName,
         customer_phone: customerPhone,
         customer_address:
-          shippingMethod === "delivery" ? customerAddress : null,
-        neighborhood: shippingMethod === "delivery" ? neighborhood : null,
+          shippingMethod === "delivery"
+            ? customerAddress
+            : `Retrait: ${selectedLocation}`,
+        neighborhood: selectedLocation,
         delivery_date: chosenDate,
         shipping_method: shippingMethod,
         total_amount: finalTotal,
@@ -161,7 +167,7 @@ const CartPage: React.FC = () => {
         })
         .join("\n");
 
-      const message = `Bonjour Helegance !
+      const message = `Bonjour Tatoo Pinterest !
 
 Je souhaite passer une commande :
 
@@ -175,10 +181,10 @@ RECAPITULATIF :
 
 INFOS CLIENT :
 - Nom : ${customerName}
-- Televephone : ${customerPhone}
-${shippingMethod === "delivery" ? `- Quartier : ${neighborhood}` : ""}
+- Téléphone : ${customerPhone}
+- Quartier/Zone : ${selectedLocation}
 - Date souhaitée : ${new Date(chosenDate).toLocaleDateString("fr-FR")}
-${shippingMethod === "delivery" ? `- Adresse : ${customerAddress}` : ""}
+${shippingMethod === "delivery" ? `- Adresse : ${customerAddress}` : `- Point de retrait : ${selectedLocation}`}
 ${notes ? `- Note : ${notes}` : ""}
 
 Merci de confirmer ma commande !`;
@@ -222,12 +228,14 @@ Merci de confirmer ma commande !`;
     <div className="pb-20 pt-4 animate-fade-in relative">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
-          <h1 className="text-3xl font-bold text-white uppercase tracking-tighter">Votre Panier</h1>
+          <h1 className="text-3xl font-bold text-white uppercase tracking-tighter">
+            Votre Panier
+          </h1>
           <span className="px-3 py-1 bg-primary/20 border border-primary/40 rounded-full text-xs font-black text-primary-light">
             {cart.length}
           </span>
         </div>
-        <button 
+        <button
           onClick={() => navigate(-1)}
           className="p-2 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-all text-gray-400 hover:text-white"
           title="Fermer"
@@ -409,6 +417,29 @@ Merci de confirmer ma commande !`;
                   </button>
                 </div>
 
+                {shippingMethod === "pickup" && (
+                  <div className="space-y-4 animate-slide-up">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-gray-500 uppercase px-1">
+                        Ville de retrait (Mandatoire)
+                      </label>
+                      <select
+                        value={selectedLocation}
+                        onChange={(e) => setSelectedLocation(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all appearance-none"
+                      >
+                        <option value="" disabled className="bg-gray-900">
+                          Choisir une ville...
+                        </option>
+                        {pickupPoints.map((point) => (
+                          <option key={point} value={point} className="bg-gray-900">
+                            {point}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {shippingMethod === "delivery" && (
@@ -417,13 +448,20 @@ Merci de confirmer ma commande !`;
                     <label className="text-xs font-bold text-gray-500 uppercase px-1">
                       Quartier de livraison (Mandatoire)
                     </label>
-                    <input
-                      type="text"
-                      value={neighborhood}
-                      onChange={(e) => setNeighborhood(e.target.value)}
-                      placeholder="Ex: Bastos, Akwa, etc."
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-                    />
+                    <select
+                      value={selectedLocation}
+                      onChange={(e) => setSelectedLocation(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all appearance-none"
+                    >
+                      <option value="" disabled className="bg-gray-900">
+                        Choisir un quartier...
+                      </option>
+                      {pickupPoints.map((point) => (
+                        <option key={point} value={point} className="bg-gray-900">
+                          {point}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-gray-500 uppercase px-1">
@@ -515,7 +553,7 @@ Merci de confirmer ma commande !`;
                 !customerName ||
                 !customerPhone ||
                 !chosenDate ||
-                (shippingMethod === "delivery" && !neighborhood)
+                !selectedLocation
               }
               className="w-full py-4 bg-primary text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-primary-hover transition-all shadow-lg shadow-primary/25 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
             >
